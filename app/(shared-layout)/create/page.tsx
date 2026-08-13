@@ -18,7 +18,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/convex/_generated/api";
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import { Loader2 } from "lucide-react";
 import { useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -29,13 +28,15 @@ import { createBlogAction } from "@/app/action";
 
 export default function CreateRoute() {
     const [isPending, startTransition] = useTransition();
-    const router = useRouter();
+  const router = useRouter();
+  
   
   const form = useForm({
     resolver: zodResolver(PostSchema),
     defaultValues: {
       title: "",
       content: "",
+      image:undefined,
       },
     
   });
@@ -100,6 +101,31 @@ export default function CreateRoute() {
                   </Field>
                 )}
               />
+
+              <Controller
+                name="image"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field>
+                    <FieldLabel>Image</FieldLabel>
+                    <Input
+                      aria-invalid={fieldState.invalid}
+                      placeholder="Content "
+                      type="file"
+                      accept="image/*"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        field.onChange(file);
+                      }}
+
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+
               <Button type="submit" disabled={isPending}>
                 {isPending ? (
                   <>
