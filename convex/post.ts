@@ -28,13 +28,24 @@ export const createPost = mutation({
 });
 export const getPosts = query({
   args: {},
-  handler: async(ctx) => {
-    const posts = await ctx.db.query("posts").order("desc").collect()
-    return posts;
+  handler: async (ctx) => {
+    const posts = await ctx.db.query("posts").order("desc").collect();
+    return await Promise.all(
+      posts.map(async (post) => {
+        const resolvedImageUrl = post.imageStorageId !== undefined ?
+          await ctx.storage.getUrl(post.imageStorageId) : null;
+        
+        return {
+          ...post,
+          imageUrl:resolvedImageUrl
+        }
+      })
+    )
+
 
   }
 
-})
+});
 export const generateImageUploadUrl = mutation({
     args: {},
     handler: async (ctx) => {
