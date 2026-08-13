@@ -45,7 +45,7 @@ await new Promise((resolve)=>setTimeout(resolve,5000))
           </div>
           <CardContent>
             <Link href={`/blog/${post._id}`}>
-              <h1 className="text-2xl font-bold hover:text-primary">
+              <h1 className="text-2xl font-bold font-serif hover:text-primary">
                 {post.title}
               </h1>
             </Link>
