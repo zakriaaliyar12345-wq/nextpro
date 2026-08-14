@@ -10,7 +10,10 @@ export default defineSchema({
         authorId: v.string(),
         imageStorageId:v.optional(v.id("_storage")),
         
-}),
+    }),
+    Comments: defineTable({
+        
+    })
 })
 
 

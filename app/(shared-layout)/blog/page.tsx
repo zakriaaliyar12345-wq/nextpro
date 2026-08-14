@@ -7,6 +7,8 @@ import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+export const dynamic = "force-static";
+export const revalidate = 30;
 
 export default function BlogPage() {
     
@@ -21,7 +23,7 @@ export default function BlogPage() {
           </p>
         </div>
         <Suspense fallback={<SkeltonLoadingUi />}>
-          <LoadBlogList />
+          <LoadBlogList/>
         </Suspense>
       </div>
     );
