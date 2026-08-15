@@ -17,6 +17,7 @@ interface PostIdRouteProps {
 export default async function PostIdRoute({ params }: PostIdRouteProps) {
   const { postId } = await params;
   const post = await fetchQuery(api.post.getPostById, { postId: postId });
+  
 
   if (!post) {
     return (
@@ -58,13 +59,13 @@ export default async function PostIdRoute({ params }: PostIdRouteProps) {
         <p className="text-sm text-muted-foreground">
           Posted on :{new Date(post._creationTime).toLocaleDateString("de-US")}
         </p>
-          </div>
-          <Separator className="my-8"/>
+      </div>
+      <Separator className="my-8" />
 
       <p className="text-lg  leading-relaxed text-foreground/90 whitespace-pre-wrap">
         {post.body}
-          </p>
-          <CommentSection/>
+      </p>
+      <CommentSection />
     </div>
   );
 }

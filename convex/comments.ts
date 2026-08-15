@@ -9,7 +9,8 @@ export const getCommentsByPost = query({
     const data = await ctx.db
       .query("Comments")
       .filter((q) => q.eq(q.field("postId"), args.postId))
-      .order("desc").collect;
+      .order("desc")
+      .collect();
 
     return data;
   },
