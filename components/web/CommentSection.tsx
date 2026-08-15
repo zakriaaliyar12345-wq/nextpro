@@ -9,24 +9,29 @@ import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
 import { useParams } from "next/navigation";
 import type { Id } from "@/convex/_generated/dataModel";
-import { useMutation, useQueries, useQuery } from "convex/react";
+import { useMutation, usePreloadedQuery} from "convex/react";
 import { api } from "@/convex/_generated/api";
 import z, { json } from 'zod';
 import { toast } from "sonner";
 import { useTransition } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Separator } from "../ui/separator";
+import { Preloaded } from "convex/react";
 
 
  
 
 
-export function CommentSection() {
+export function CommentSection(props:
+  { preLoadedComments:Preloaded<typeof api.comments.getCommentsByPost> }) {
+  
+  
   const params = useParams<{ postId: Id<"posts"> }>();
-  const data = useQuery(api.comments.getCommentsByPost, { postId: params.postId })
+
+  const data = usePreloadedQuery(props.preLoadedComments);
 
   const createComments = useMutation(api.comments.createComments);
-   const [isPending, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
 
   const form = useForm({
     resolver: zodResolver(commentSchema),
@@ -35,8 +40,8 @@ export function CommentSection() {
       postId: params.postId,
     },
   });
-   async function OnSubmit(data:z.infer<typeof commentSchema>) {
-     startTransition( async() => {
+  async function OnSubmit(data: z.infer<typeof commentSchema>) {
+    startTransition(async () => {
       try {
         await createComments(data);
         form.reset();
@@ -44,11 +49,11 @@ export function CommentSection() {
       } catch {
         toast.error("Failed to create comments ");
       }
-   })
+    });
   }
   if (data === undefined) {
-  return <p>Loading...</p>
-}
+    return <p>Loading...</p>;
+  }
   return (
     <Card>
       <CardHeader className="flex flex-row items-center gap-2 border-b">
@@ -85,7 +90,7 @@ export function CommentSection() {
             )}
           </Button>
         </form>
-        {data?.length > 0 && <Separator/>}
+        {data?.length > 0 && <Separator />}
         <section className="space-y-6">
           {data?.map((comment) => (
             <div key={comment._id} className="flex gap-4">
@@ -95,23 +100,26 @@ export function CommentSection() {
                   alt={comment.authorName}
                 />
                 <AvatarFallback>
-                  {comment.authorName.slice(0,2).toUpperCase()}
+                  {comment.authorName.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 space-y-1">
-
                 <div className="flex items-center justify-between">
                   <p className="font-semibold text-sm">{comment.authorName}</p>
                   <p className="text-muted-foreground text-xs">
-                    {new Date(comment._creationTime)
-                    .toLocaleDateString("en-US")}</p>
+                    {new Date(comment._creationTime).toLocaleDateString(
+                      "en-US",
+                    )}
+                  </p>
                 </div>
-                <p className="text-sm text-foreground/90
+                <p
+                  className="text-sm text-foreground/90
                 whitespace-nowrap leading-relaxed
-                ">{comment.body}</p>
-
-                
-            </div>
+                "
+                >
+                  {comment.body}
+                </p>
+              </div>
             </div>
           ))}
         </section>
