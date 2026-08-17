@@ -7,9 +7,10 @@ import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Metadata } from "next";
-export const dynamic = "force-static";
-export const revalidate = 30;
+import { connection } from "next/server";
+import { cacheLife, cacheTag } from "next/cache";
+// export const dynamic = "force-static";
+// export const revalidate = 30;
 
 
 
@@ -35,6 +36,10 @@ export default function BlogPage() {
 
 
 async function LoadBlogList() {
+  // "use cache"
+  // cacheLife("hours");
+  // cacheTag("blog");
+  await connection();
 await new Promise((resolve)=>setTimeout(resolve,5000))
   const data = await fetchQuery(api.post.getPosts);
   return (

@@ -67,7 +67,7 @@ export default async function PostIdRoute({ params }: PostIdRouteProps) {
         <ArrowLeft className="size-4" /> Back to blog
       </Link>
 
-      <div className="relative w-full h-[400px] mb-8 rounded-xl overflow-hidden shadow-sm">
+      <div className="relative w-full h-[400 px] mb-8 rounded-xl overflow-hidden shadow-sm">
         <Image
           src={
             post.imageUrl ??
