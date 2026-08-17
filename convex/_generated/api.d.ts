@@ -12,6 +12,7 @@ import type * as auth from "../auth.js";
 import type * as comments from "../comments.js";
 import type * as http from "../http.js";
 import type * as post from "../post.js";
+import type * as presence from "../presence.js";
 
 import type {
   ApiFromModules,
@@ -24,6 +25,7 @@ declare const fullApi: ApiFromModules<{
   comments: typeof comments;
   http: typeof http;
   post: typeof post;
+  presence: typeof presence;
 }>;
 
 /**
@@ -54,4 +56,5 @@ export declare const internal: FilterApi<
 
 export declare const components: {
   betterAuth: import("@convex-dev/better-auth/_generated/component.js").ComponentApi<"betterAuth">;
+  presence: import("@convex-dev/presence/_generated/component.js").ComponentApi<"presence">;
 };
