@@ -10,6 +10,10 @@ export default defineSchema({
         authorId: v.string(),
         imageStorageId: v.optional(v.id("_storage")),
         
+    }).searchIndex("search_title", {
+        searchField:"title"
+    }).searchIndex("search_body", {
+        searchField:"body"
     }),
     Comments: defineTable({
         postId: v.id("posts"),

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { SearchInput } from "./SearchInput";
 
 export default function Navbar() {
 
@@ -35,19 +36,27 @@ export default function Navbar() {
       </div>
 
       <div className="flex items-center gap-2">
+        <div className="hiding md:block mr-2">
+          <SearchInput />
+        </div>
         {isLoading ? null : isAuthenticated ? (
-          <Button onClick={() => authClient.signOut({
-            fetchOptions: {
-              onSuccess: () => {
-                toast.success("Logout  successfully");
-                router.push("/");
-              },
-              onError: (error) => {
-                toast.error(error.error.message);
-                
-              },
+          <Button
+            onClick={() =>
+              authClient.signOut({
+                fetchOptions: {
+                  onSuccess: () => {
+                    toast.success("Logout  successfully");
+                    router.push("/");
+                  },
+                  onError: (error) => {
+                    toast.error(error.error.message);
+                  },
+                },
+              })
             }
-          })}>Logout</Button>
+          >
+            Logout
+          </Button>
         ) : (
           <>
             <Link className={buttonVariants()} href="/auth/sign-up">
@@ -58,8 +67,7 @@ export default function Navbar() {
             </Link>
           </>
         )}
-        <ThemeToggle/>
-      
+        <ThemeToggle />
       </div>
     </nav>
   );
