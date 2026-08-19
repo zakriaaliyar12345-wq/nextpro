@@ -36,10 +36,9 @@ export default function BlogPage() {
 
 
 async function LoadBlogList() {
-  // "use cache"
-  // cacheLife("hours");
-  // cacheTag("blog");
-  await connection();
+  "use cache"
+  cacheLife("hours");
+  cacheTag("blog");
 await new Promise((resolve)=>setTimeout(resolve,5000))
   const data = await fetchQuery(api.post.getPosts);
   return (
