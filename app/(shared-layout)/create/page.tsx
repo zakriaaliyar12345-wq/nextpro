@@ -50,8 +50,7 @@ export default function CreateRoute() {
 
   function onSubmit(values: z.infer<typeof PostSchema>) {
     startTransition(async () => {
-      console.log("hey this runs from client side");
-
+      console.log("hey this runs from client  side ");
       await createBlogAction(values);
     });
   }
