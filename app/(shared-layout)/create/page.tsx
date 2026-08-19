@@ -2,6 +2,7 @@
 
 import { PostSchema } from "@/app/schemas/blog";
 import { Button } from "@/components/ui/button";
+
 import {
   Card,
   CardContent,
@@ -9,32 +10,40 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
 import {
   Field,
   FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
+
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+
+import { api } from "@/convex/_generated/api";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useEffect, useTransition } from "react";
+
+import { useMutation } from "convex/react";
+import { useTransition } from "react";
+
 import { Controller, useForm } from "react-hook-form";
 import type z from "zod";
-import { useRouter } from "next/navigation";
+
+import { toast } from "sonner";
+
 import { createBlogAction } from "@/app/action";
-import { useConvexAuth } from "convex/react";
 
 export default function CreateRoute() {
   const [isPending, startTransition] = useTransition();
 
-  const router = useRouter();
-
-  const { isAuthenticated, isLoading } = useConvexAuth();
+  const generateUploadUrl = useMutation(api.post.generateImageUploadUrl);
 
   const form = useForm({
     resolver: zodResolver(PostSchema),
+
     defaultValues: {
       title: "",
       content: "",
@@ -42,29 +51,61 @@ export default function CreateRoute() {
     },
   });
 
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.replace("/auth/login");
+  async function onSubmit(values: z.infer<typeof PostSchema>) {
+    if (!values.image) {
+      toast.error("Please select an image");
+      return;
     }
-  }, [isLoading, isAuthenticated, router]);
 
-  function onSubmit(values: z.infer<typeof PostSchema>) {
     startTransition(async () => {
-      console.log("hey this runs from client  side ");
-      await createBlogAction(values);
+      try {
+        console.log("Getting Convex upload URL...");
+
+        // Upload URL from Convex
+        const uploadUrl = await generateUploadUrl();
+
+        console.log("Uploading image directly to Convex...");
+
+        // IMPORTANT:
+        // The image goes directly from browser to Convex.
+        const uploadResult = await fetch(uploadUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": values.image.type,
+          },
+          body: values.image,
+        });
+
+        if (!uploadResult.ok) {
+          throw new Error("Image upload failed");
+        }
+
+        const { storageId } = await uploadResult.json();
+
+        console.log("Image uploaded:", storageId);
+
+        // IMPORTANT:
+        // Only title, content and storageId go to the Server Action.
+        // The large image is NOT sent to Next.js.
+        const result = await createBlogAction(
+          {
+            title: values.title,
+            content: values.content,
+          },
+          storageId,
+        );
+
+        if (result?.error) {
+          toast.error(result.error);
+        }
+      } catch (error) {
+        console.error("UPLOAD ERROR:", error);
+
+        toast.error(
+          error instanceof Error ? error.message : "Failed to upload image",
+        );
+      }
     });
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="size-8 animate-spin" />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return null;
   }
 
   return (
@@ -98,7 +139,7 @@ export default function CreateRoute() {
 
                     <Input
                       aria-invalid={fieldState.invalid}
-                      placeholder="Amazing title !"
+                      placeholder="Amazing title!"
                       {...field}
                     />
 
@@ -137,14 +178,23 @@ export default function CreateRoute() {
                     <FieldLabel>Image</FieldLabel>
 
                     <Input
-                      aria-invalid={fieldState.invalid}
                       type="file"
                       accept="image/*"
+                      aria-invalid={fieldState.invalid}
                       onChange={(event) => {
                         const file = event.target.files?.[0];
+
                         field.onChange(file);
                       }}
                     />
+
+                    {field.value && (
+                      <p className="text-sm text-muted-foreground">
+                        Selected: {field.value.name} (
+                        {(field.value.size / (1024 * 1024)).toFixed(2)}
+                        {" MB"})
+                      </p>
+                    )}
 
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
@@ -157,7 +207,7 @@ export default function CreateRoute() {
                 {isPending ? (
                   <>
                     <Loader2 className="size-4 animate-spin" />
-                    <span>Loading...</span>
+                    <span>Uploading...</span>
                   </>
                 ) : (
                   <span>Create Post</span>

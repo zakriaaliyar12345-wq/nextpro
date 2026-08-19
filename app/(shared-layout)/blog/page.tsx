@@ -53,15 +53,13 @@ async function LoadBlogList() {
       {data?.map((post) => (
         <Card key={post._id} className="pt-0">
           <div className="relative h-48 w-full overflow-hidden">
-            <Image
+            <img
               src={
                 post.imageUrl ??
                 "https://images.unsplash.com/photo-1786173071061-e47b0df235c9?q=80&w=685&auto=format&fit=crop"
               }
               alt={post.title}
-              fill
-              className="rounded-t-lg object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="absolute inset-0 h-full w-full rounded-t-lg object-cover"
             />
           </div>
 
