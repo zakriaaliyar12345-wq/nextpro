@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cacheLife, cacheTag } from "next/cache";
 import { getToken } from "@/lib/auth-server";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 export const instant = false;
 
 export default async function BlogPage() {
@@ -46,7 +47,7 @@ async function LoadBlogList() {
 
   // cacheLife("hours");
   // cacheTag("blog");
-  
+  await connection();
 
   await new Promise((resolve) => setTimeout(resolve, 5000));
 
