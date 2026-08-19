@@ -1,4 +1,7 @@
+
 "use client";
+
+import { useEffect, useTransition } from "react";
 
 import { PostSchema } from "@/app/schemas/blog";
 import { Button } from "@/components/ui/button";
@@ -27,8 +30,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 
 import { useMutation } from "convex/react";
-import { useTransition } from "react";
-
 import { Controller, useForm } from "react-hook-form";
 import type z from "zod";
 
@@ -39,9 +40,11 @@ import { createBlogAction } from "@/app/action";
 export default function CreateRoute() {
   const [isPending, startTransition] = useTransition();
 
-  const generateUploadUrl = useMutation(api.post.generateImageUploadUrl);
+  const generateUploadUrl = useMutation(
+    api.post.generateImageUploadUrl
+  );
 
-  const form = useForm({
+  const form = useForm<z.infer<typeof PostSchema>>({
     resolver: zodResolver(PostSchema),
 
     defaultValues: {
@@ -51,7 +54,28 @@ export default function CreateRoute() {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof PostSchema>) {
+  // Always start with a completely empty form
+  // when the Create page is mounted.
+  useEffect(() => {
+    form.reset({
+      title: "",
+      content: "",
+      image: undefined,
+    });
+
+    // Clear the actual file input too.
+    const fileInput = document.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement | null;
+
+    if (fileInput) {
+      fileInput.value = "";
+    }
+  }, [form]);
+
+  async function onSubmit(
+    values: z.infer<typeof PostSchema>
+  ) {
     if (!values.image) {
       toast.error("Please select an image");
       return;
@@ -61,13 +85,11 @@ export default function CreateRoute() {
       try {
         console.log("Getting Convex upload URL...");
 
-        // Upload URL from Convex
+        // Upload the image directly from the browser to Convex.
         const uploadUrl = await generateUploadUrl();
 
         console.log("Uploading image directly to Convex...");
 
-        // IMPORTANT:
-        // The image goes directly from browser to Convex.
         const uploadResult = await fetch(uploadUrl, {
           method: "POST",
           headers: {
@@ -84,25 +106,45 @@ export default function CreateRoute() {
 
         console.log("Image uploaded:", storageId);
 
-        // IMPORTANT:
-        // Only title, content and storageId go to the Server Action.
-        // The large image is NOT sent to Next.js.
+        // Only send text + storageId to the Server Action.
+        // The large image itself is NOT sent through Next.js.
         const result = await createBlogAction(
           {
             title: values.title,
             content: values.content,
           },
-          storageId,
+          storageId
         );
 
         if (result?.error) {
           toast.error(result.error);
+          return;
         }
+
+        // Reset the form after successful creation.
+        form.reset({
+          title: "",
+          content: "",
+          image: undefined,
+        });
+
+        // Reset the real file input.
+        const fileInput = document.querySelector(
+          'input[type="file"]'
+        ) as HTMLInputElement | null;
+
+        if (fileInput) {
+          fileInput.value = "";
+        }
+
+        toast.success("Blog created successfully!");
       } catch (error) {
         console.error("UPLOAD ERROR:", error);
 
         toast.error(
-          error instanceof Error ? error.message : "Failed to upload image",
+          error instanceof Error
+            ? error.message
+            : "Failed to upload image"
         );
       }
     });
@@ -124,12 +166,15 @@ export default function CreateRoute() {
         <CardHeader>
           <CardTitle>Create Blog Article</CardTitle>
 
-          <CardDescription>Create your own blogs here!</CardDescription>
+          <CardDescription>
+            Create your own blogs here!
+          </CardDescription>
         </CardHeader>
 
         <CardContent>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <FieldGroup className="gap-y-4">
+              {/* TITLE */}
               <Controller
                 name="title"
                 control={form.control}
@@ -144,12 +189,15 @@ export default function CreateRoute() {
                     />
 
                     {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
+                      <FieldError
+                        errors={[fieldState.error]}
+                      />
                     )}
                   </Field>
                 )}
               />
 
+              {/* CONTENT */}
               <Controller
                 name="content"
                 control={form.control}
@@ -164,12 +212,15 @@ export default function CreateRoute() {
                     />
 
                     {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
+                      <FieldError
+                        errors={[fieldState.error]}
+                      />
                     )}
                   </Field>
                 )}
               />
 
+              {/* IMAGE */}
               <Controller
                 name="image"
                 control={form.control}
@@ -182,7 +233,8 @@ export default function CreateRoute() {
                       accept="image/*"
                       aria-invalid={fieldState.invalid}
                       onChange={(event) => {
-                        const file = event.target.files?.[0];
+                        const file =
+                          event.target.files?.[0];
 
                         field.onChange(file);
                       }}
@@ -191,19 +243,28 @@ export default function CreateRoute() {
                     {field.value && (
                       <p className="text-sm text-muted-foreground">
                         Selected: {field.value.name} (
-                        {(field.value.size / (1024 * 1024)).toFixed(2)}
+                        {(
+                          field.value.size /
+                          (1024 * 1024)
+                        ).toFixed(2)}
                         {" MB"})
                       </p>
                     )}
 
                     {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
+                      <FieldError
+                        errors={[fieldState.error]}
+                      />
                     )}
                   </Field>
                 )}
               />
 
-              <Button type="submit" disabled={isPending}>
+              {/* SUBMIT */}
+              <Button
+                type="submit"
+                disabled={isPending}
+              >
                 {isPending ? (
                   <>
                     <Loader2 className="size-4 animate-spin" />
@@ -220,3 +281,4 @@ export default function CreateRoute() {
     </div>
   );
 }
+
