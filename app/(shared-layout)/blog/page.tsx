@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cacheLife, cacheTag } from "next/cache";
 import { getToken } from "@/lib/auth-server";
 import { redirect } from "next/navigation";
+export const instant = false;
 
 export default async function BlogPage() {
   // Check Better Auth session
