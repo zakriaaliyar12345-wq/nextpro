@@ -6,10 +6,9 @@ import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cacheLife, cacheTag } from "next/cache";
 import { getToken } from "@/lib/auth-server";
 import { redirect } from "next/navigation";
-import { connection } from "next/server";
+
 export const instant = false;
 
 export default async function BlogPage() {
@@ -24,18 +23,18 @@ export default async function BlogPage() {
   }
 
   return (
-    <div className="py12">
+    <div className="py-12">
       <div className="text-center pb-12">
         <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
           Our Blogs
         </h1>
 
         <p className="pt-4 max-w-2xl mx-auto text-xl text-muted-foreground">
-          Insights,Thoughts and trend team
+          Insights, Thoughts and trends from our team
         </p>
       </div>
 
-      <Suspense fallback={<SkeltonLoadingUi />}>
+      <Suspense fallback={<SkeletonLoadingUi />}>
         <LoadBlogList />
       </Suspense>
     </div>
@@ -43,13 +42,9 @@ export default async function BlogPage() {
 }
 
 async function LoadBlogList() {
-  // "use cache";
-
-  // cacheLife("hours");
-  // cacheTag("blog");
-  // await connection();
-
-  await new Promise((resolve) => setTimeout(resolve, 5000));
+  // No cache for now.
+  // No connection().
+  // No artificial 5-second delay.
 
   const data = await fetchQuery(api.post.getPosts);
 
@@ -61,11 +56,12 @@ async function LoadBlogList() {
             <Image
               src={
                 post.imageUrl ??
-                "https://images.unsplash.com/photo-1786173071061-e47b0df235c9?q=80&w=685&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                "https://images.unsplash.com/photo-1786173071061-e47b0df235c9?q=80&w=685&auto=format&fit=crop"
               }
-              alt="image"
+              alt={post.title}
               fill
               className="rounded-t-lg object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />
           </div>
 
@@ -93,7 +89,7 @@ async function LoadBlogList() {
   );
 }
 
-function SkeltonLoadingUi() {
+function SkeletonLoadingUi() {
   return (
     <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-3">
       {[...Array(6)].map((_, i) => (
