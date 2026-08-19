@@ -1,4 +1,5 @@
 "use client";
+
 import { PostSchema } from "@/app/schemas/blog";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,53 +17,76 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { api } from "@/convex/_generated/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useTransition } from "react";
+import { useEffect, useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 import type z from "zod";
-import { toast } from 'sonner';
 import { useRouter } from "next/navigation";
 import { createBlogAction } from "@/app/action";
+import { useConvexAuth } from "convex/react";
 
 export default function CreateRoute() {
-    const [isPending, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
+
   const router = useRouter();
-  
-  
+
+  const { isAuthenticated, isLoading } = useConvexAuth();
+
   const form = useForm({
     resolver: zodResolver(PostSchema),
     defaultValues: {
       title: "",
       content: "",
-      image:undefined,
-      },
-    
+      image: undefined,
+    },
   });
-    
-  function onSubmit(values: z.infer<typeof PostSchema>) {
-      startTransition(async () => {
-        console.log("hey this runs from client  side ")
-         await createBlogAction(values);
-    });
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace("/auth/login");
     }
-    
+  }, [isLoading, isAuthenticated, router]);
+
+  function onSubmit(values: z.infer<typeof PostSchema>) {
+    startTransition(async () => {
+      console.log("hey this runs from client side");
+
+      await createBlogAction(values);
+    });
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 className="size-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return (
     <div className="py-12">
       <div className="text-center mb-12">
         <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">
-          Create Post{" "}
+          Create Post
         </h1>
+
         <p className="text-xl text-muted-foreground pt-4">
           Share your ideas with all around the world
         </p>
       </div>
+
       <Card className="w-full max-w-xl mx-auto">
         <CardHeader>
           <CardTitle>Create Blog Article</CardTitle>
-          <CardDescription>Create your own blogs here !</CardDescription>
+
+          <CardDescription>Create your own blogs here!</CardDescription>
         </CardHeader>
+
         <CardContent>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <FieldGroup className="gap-y-4">
@@ -72,11 +96,13 @@ export default function CreateRoute() {
                 render={({ field, fieldState }) => (
                   <Field>
                     <FieldLabel>Title</FieldLabel>
+
                     <Input
                       aria-invalid={fieldState.invalid}
                       placeholder="Amazing title !"
                       {...field}
                     />
+
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
                     )}
@@ -90,11 +116,13 @@ export default function CreateRoute() {
                 render={({ field, fieldState }) => (
                   <Field>
                     <FieldLabel>Content</FieldLabel>
+
                     <Textarea
                       aria-invalid={fieldState.invalid}
-                      placeholder="Content "
+                      placeholder="Content"
                       {...field}
                     />
+
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
                     )}
@@ -108,17 +136,17 @@ export default function CreateRoute() {
                 render={({ field, fieldState }) => (
                   <Field>
                     <FieldLabel>Image</FieldLabel>
+
                     <Input
                       aria-invalid={fieldState.invalid}
-                      placeholder="Content "
                       type="file"
                       accept="image/*"
                       onChange={(event) => {
                         const file = event.target.files?.[0];
                         field.onChange(file);
                       }}
-
                     />
+
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
                     )}
