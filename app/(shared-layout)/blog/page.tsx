@@ -43,11 +43,11 @@ export default async function BlogPage() {
 }
 
 async function LoadBlogList() {
-  "use cache";
+  // "use cache";
 
-  cacheLife("hours");
-  cacheTag("blog");
-  await connection();
+  // cacheLife("hours");
+  // cacheTag("blog");
+  // await connection();
 
   await new Promise((resolve) => setTimeout(resolve, 5000));
 
